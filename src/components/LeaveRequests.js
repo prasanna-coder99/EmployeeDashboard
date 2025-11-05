@@ -322,7 +322,72 @@ export default function LeaveRequests() {
                 </div>
               </div>
 
-              {/* ... other history items ... (kept unchanged) */}
+              {/* Casual Leave - Pending */}
+              <div className="p-6 bg-white rounded-lg border border-gray-200">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className="flex flex-col gap-2 pt-1">
+                      <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                        <Clock className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                        <Coffee className="w-5 h-5 text-blue-500" />
+                      </div>
+                    </div>
+
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-semibold text-gray-900">Casual Leave</span>
+                        <span className="text-gray-400">•</span>
+                        <span className="text-sm text-gray-500">2 days</span>
+                      </div>
+                      <div className="text-sm text-gray-500 mb-2">Feb 15 - Feb 16, 2024</div>
+                      <div className="text-sm text-gray-600 mb-1">Family wedding ceremony</div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-end gap-2">
+                    <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                      Pending
+                    </span>
+                    <span className="text-xs text-gray-500">Applied Jan 15</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Emergency Leave - Approved */}
+              <div className="p-6 bg-white rounded-lg border border-gray-200">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className="flex flex-col gap-2 pt-1">
+                      <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div className="w-8 h-8 bg-yellow-50 rounded-lg flex items-center justify-center">
+                        <Zap className="w-5 h-5 text-yellow-500" />
+                      </div>
+                    </div>
+
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-semibold text-gray-900">Emergency Leave</span>
+                        <span className="text-gray-400">•</span>
+                        <span className="text-sm text-gray-500">1 day</span>
+                      </div>
+                      <div className="text-sm text-gray-500 mb-2">Jan 10 - Jan 10, 2024</div>
+                      <div className="text-sm text-gray-600 mb-1">Family emergency - father hospitalized</div>
+                      <div className="text-sm text-green-600">Approved by Manager Name</div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-end gap-2">
+                    <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                      Approved
+                    </span>
+                    <span className="text-xs text-gray-500">Applied Jan 09</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

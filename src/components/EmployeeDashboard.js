@@ -5,16 +5,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
-import { Clock, Calendar, TrendingUp, CheckCircle, Plus, Users, LogOut, X, Save, Send, Eye, Edit } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Clock, Calendar, TrendingUp, CheckCircle, Plus, Users, LogOut, Trash2, Save, Send, Eye, Edit } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar as CalendarPicker } from './ui/calendar';
 import { format, startOfToday, differenceInBusinessDays } from "date-fns";
 
-
 import { useNavigate } from 'react-router-dom';
 
 // =======================
-// Request Leave Modal Component (with validation)
+// Request Leave Modal Component (unchanged)
 // =======================
 const RequestLeaveModal = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
@@ -28,7 +28,6 @@ const RequestLeaveModal = ({ isOpen, onClose }) => {
   const [errors, setErrors] = useState({});
   const today = startOfToday();
 
-  // ✅ Calculate duration (business days)
   const calculateDuration = () => {
     const { startDateObj, endDateObj } = formData;
     if (startDateObj && endDateObj && endDateObj >= startDateObj) {
@@ -89,15 +88,6 @@ const RequestLeaveModal = ({ isOpen, onClose }) => {
                 Request Time Off
               </DialogTitle>
             </div>
-            <button
-              onClick={() => {
-                setErrors({});
-                onClose();
-              }}
-              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              
-            </button>
           </div>
         </DialogHeader>
 
@@ -111,9 +101,7 @@ const RequestLeaveModal = ({ isOpen, onClose }) => {
               id="leaveType"
               value={formData.leaveType}
               onChange={(e) => handleInputChange("leaveType", e.target.value)}
-              className={`w-full h-12 px-4 text-base rounded-lg focus:outline-none ${
-                errors.leaveType ? "border border-red-500" : "border border-blue-400"
-              }`}
+              className={`w-full h-12 px-4 text-base rounded-lg focus:outline-none ${errors.leaveType ? "border border-red-500" : "border border-blue-400"}`}
             >
               <option value="">Select leave type</option>
               <option value="sick">Sick Leave</option>
@@ -135,11 +123,9 @@ const RequestLeaveModal = ({ isOpen, onClose }) => {
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className={`w-full justify-start text-left h-12 pl-3 ${
-                      formData.startDate ? "text-gray-900" : "text-gray-400"
-                    }`}
+                    className={`w-full justify-start text-left h-12 pl-3 ${formData.startDate ? "text-gray-900" : "text-gray-400"}`}
                   >
-                    <Calendar className="mr-2 h-5 w-5  text-blue-500" />
+                    <Calendar className="mr-2 h-5 w-5 text-blue-500" />
                     {formData.startDate || "Pick Start Date"}
                   </Button>
                 </PopoverTrigger>
@@ -151,8 +137,6 @@ const RequestLeaveModal = ({ isOpen, onClose }) => {
                       if (date) {
                         handleInputChange("startDate", format(date, "MMMM do, yyyy"));
                         handleInputChange("startDateObj", date);
-
-                        // reset end date if it's before start date
                         if (formData.endDateObj && formData.endDateObj < date) {
                           handleInputChange("endDate", "");
                           handleInputChange("endDateObj", null);
@@ -176,9 +160,7 @@ const RequestLeaveModal = ({ isOpen, onClose }) => {
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className={`w-full justify-start text-left h-12 pl-3 ${
-                      formData.endDate ? "text-gray-900" : "text-gray-400"
-                    }`}
+                    className={`w-full justify-start text-left h-12 pl-3 ${formData.endDate ? "text-gray-900" : "text-gray-400"}`}
                   >
                     <Calendar className="mr-2 h-5 w-5 text-blue-500" />
                     {formData.endDate || "Pick End Date"}
@@ -194,9 +176,7 @@ const RequestLeaveModal = ({ isOpen, onClose }) => {
                         handleInputChange("endDateObj", date);
                       }
                     }}
-                    disabled={(date) =>
-                      date < (formData.startDateObj || today)
-                    } 
+                    disabled={(date) => date < (formData.startDateObj || today)}
                     initialFocus
                   />
                 </PopoverContent>
@@ -205,7 +185,7 @@ const RequestLeaveModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* ✅ Duration Display */}
+          {/* Duration Display */}
           {durationText && (
             <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 text-blue-700 text-sm flex items-center gap-2">
               <Clock className="w-4 h-4 text-blue-500" />
@@ -221,9 +201,7 @@ const RequestLeaveModal = ({ isOpen, onClose }) => {
             <Textarea
               value={formData.reason}
               onChange={(e) => handleInputChange("reason", e.target.value)}
-              className={`min-h-32 text-base resize-none ${
-                errors.reason ? "border border-red-500" : ""
-              }`}
+              className={`min-h-32 text-base resize-none ${errors.reason ? "border border-red-500" : ""}`}
               placeholder="Please provide a detailed reason..."
             />
             {errors.reason && <p className="text-red-500 text-sm">{errors.reason}</p>}
@@ -245,7 +223,7 @@ const RequestLeaveModal = ({ isOpen, onClose }) => {
 };
 
 // =======================
-// Log Hours Modal (with past date disabled)
+// Log Hours Modal (Updated Overtime Logic)
 // =======================
 const LogHoursModal = ({ isOpen, onClose }) => {
   const today = startOfToday();
@@ -253,15 +231,18 @@ const LogHoursModal = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
     date: '',
     dateObj: null,
-    hoursWorked: '',
+    hoursWorkedHours: '',
+    hoursWorkedMinutes: '',
+    hoursWorked: 0, // total minutes
     breakHours: '',
     overtimeHours: '0',
-    notes: '',
+    tasks: [{ id: 1, name: '', time: '' }],
+    description: '',
   });
 
   const [errors, setErrors] = useState({});
+  const [activeTab, setActiveTab] = useState('tasks');
 
-  // ✅ Set default to today’s date automatically when modal opens
   useEffect(() => {
     if (isOpen) {
       const formattedToday = format(today, 'MMMM do, yyyy');
@@ -269,6 +250,10 @@ const LogHoursModal = ({ isOpen, onClose }) => {
         ...prev,
         date: formattedToday,
         dateObj: today,
+        hoursWorkedHours: '',
+        hoursWorkedMinutes: '',
+        hoursWorked: 0,
+        overtimeHours: '0',
       }));
       setErrors({});
     }
@@ -276,12 +261,14 @@ const LogHoursModal = ({ isOpen, onClose }) => {
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => {
-      const updated = { ...prev, [field]: value };
+      let updated = { ...prev, [field]: value };
 
-      // Auto-calculate overtime if hours > 8
-      if (field === 'hoursWorked') {
-        const hours = parseFloat(value) || 0;
-        updated.overtimeHours = hours > 8 ? (hours - 8).toFixed(1) : '0';
+      // ✅ Calculate overtime dynamically
+      if (field === 'hoursWorked' || field === 'hoursWorkedHours' || field === 'hoursWorkedMinutes') {
+        const hours = parseInt(updated.hoursWorkedHours || 0, 10);
+        const minutes = parseInt(updated.hoursWorkedMinutes || 0, 10);
+        const totalHours = hours + minutes / 60;
+        updated.overtimeHours = totalHours > 8 ? ((totalHours - 8).toFixed(2)) : '0';
       }
 
       return updated;
@@ -292,15 +279,13 @@ const LogHoursModal = ({ isOpen, onClose }) => {
 
   const validateForm = (data) => {
     const newErrors = {};
-
-    // ✅ Validate only Work Date and Hours Worked
     if (!data.date) newErrors.date = 'Work date is required.';
 
-    const hours = parseFloat(data.hoursWorked);
-    if (isNaN(hours) || hours <= 0) newErrors.hoursWorked = 'Hours worked must be greater than 0.';
-    if (hours > 24) newErrors.hoursWorked = 'Hours worked cannot exceed 24.';
+    const hours = parseInt(data.hoursWorkedHours || 0, 10);
+    const minutes = parseInt(data.hoursWorkedMinutes || 0, 10);
+    if ((hours === 0 && minutes === 0)) newErrors.hoursWorked = 'Hours worked must be greater than 0.';
+    if (hours > 24 || (hours === 24 && minutes > 0)) newErrors.hoursWorked = 'Hours worked cannot exceed 24.';
 
-    // Prevent negative break hours
     const breakH = parseFloat(data.breakHours || '0');
     if (!isNaN(breakH) && breakH < 0) newErrors.breakHours = 'Break hours cannot be negative.';
 
@@ -321,6 +306,27 @@ const LogHoursModal = ({ isOpen, onClose }) => {
   const handleSaveDraft = () => {
     console.log('Saving as draft:', formData);
     onClose();
+  };
+
+  const addTask = () => {
+    setFormData((prev) => ({
+      ...prev,
+      tasks: [...prev.tasks, { id: Date.now(), name: '', time: '' }],
+    }));
+  };
+
+  const removeTask = (id) => {
+    setFormData((prev) => ({
+      ...prev,
+      tasks: prev.tasks.filter((task) => task.id !== id),
+    }));
+  };
+
+  const updateTask = (id, field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      tasks: prev.tasks.map((task) => (task.id === id ? { ...task, [field]: value } : task)),
+    }));
   };
 
   return (
@@ -348,7 +354,7 @@ const LogHoursModal = ({ isOpen, onClose }) => {
         </DialogHeader>
 
         <div className="px-8 py-6 space-y-6">
-          {/* ✅ Work Date */}
+          {/* Work Date */}
           <div className="space-y-2">
             <Label htmlFor="date" className="text-sm font-medium text-gray-700">
               Work Date <span className="text-red-500">*</span>
@@ -357,18 +363,13 @@ const LogHoursModal = ({ isOpen, onClose }) => {
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className={`w-full justify-start text-left font-normal h-12 pl-3 ${
-                    formData.date ? 'text-gray-900' : 'text-gray-400'
-                  }`}
+                  className={`w-full justify-start text-left font-normal h-12 pl-3 ${formData.date ? 'text-gray-900' : 'text-gray-400'}`}
                 >
                   <Calendar className="mr-2 h-5 w-5 text-blue-500" />
                   {formData.date || 'Pick a date'}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent
-                className="w-auto p-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-100"
-                align="start"
-              >
+              <PopoverContent className="w-auto p-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-100" align="start">
                 <CalendarPicker
                   mode="single"
                   selected={formData.dateObj}
@@ -379,7 +380,7 @@ const LogHoursModal = ({ isOpen, onClose }) => {
                       handleInputChange('dateObj', date);
                     }
                   }}
-                  disabled={(date) => date < today} // disable past dates
+                  disabled={(date) => date < today}
                   initialFocus
                 />
               </PopoverContent>
@@ -387,95 +388,131 @@ const LogHoursModal = ({ isOpen, onClose }) => {
             {errors.date && <p className="text-red-500 text-sm">{errors.date}</p>}
           </div>
 
-          {/* ✅ Hours / Break / Overtime */}
+          {/* Hours / Break / Overtime */}
           <div className="grid grid-cols-3 gap-6">
+            {/* Total Work Hours */}
             <div className="space-y-2">
-              <Label htmlFor="hoursWorked" className="text-sm font-medium text-gray-700">
-                Hours Worked <span className="text-red-500">*</span>
+              <Label className="text-sm font-medium text-gray-700">
+                Total Work Hours <span className="text-red-500">*</span>
               </Label>
-              <Input
-                id="hoursWorked"
-                type="number"
-                step="0.5"
-                value={formData.hoursWorked}
-                onChange={(e) => handleInputChange('hoursWorked', e.target.value)}
-                className={`h-12 text-base ${errors.hoursWorked ? 'border border-red-500' : ''}`}
-                placeholder="8.0"
-                min="0"
-              />
-              {errors.hoursWorked && (
-                <p className="text-red-500 text-sm">{errors.hoursWorked}</p>
-              )}
+              <div className="flex items-center border border-gray-300 rounded-lg px-3 h-12 bg-white">
+                <input
+                  type="number"
+                  min="0"
+                  max="24"
+                  value={formData.hoursWorkedHours}
+                  onChange={(e) => handleInputChange('hoursWorkedHours', e.target.value)}
+                  className="w-14 text-right border-none focus:outline-none text-base"
+                  placeholder="8"
+                />
+                <span className="text-gray-700 ml-1 font-medium">hr</span>
+                <span className="mx-2 text-gray-500">:</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="59"
+                  value={formData.hoursWorkedMinutes}
+                  onChange={(e) => handleInputChange('hoursWorkedMinutes', e.target.value)}
+                  className="w-14 text-right border-none focus:outline-none text-base"
+                  placeholder="30"
+                />
+                <span className="text-gray-700 ml-1 font-medium">min</span>
+              </div>
+              {errors.hoursWorked && <p className="text-red-500 text-sm">{errors.hoursWorked}</p>}
             </div>
 
+            {/* Break Hours */}
             <div className="space-y-2">
-              <Label htmlFor="breakHours" className="text-sm font-medium text-gray-700">
-                Break Hours
-              </Label>
+              <Label className="text-sm font-medium text-gray-700">Break Hours</Label>
               <Input
-                id="breakHours"
                 type="number"
                 step="0.5"
+                min="0"
                 value={formData.breakHours}
-                onChange={(e) =>
-                  handleInputChange('breakHours', Math.max(0, e.target.value))
-                }
+                onChange={(e) => handleInputChange('breakHours', e.target.value)}
                 className={`h-12 text-base ${errors.breakHours ? 'border border-red-500' : ''}`}
-                placeholder="1"
-                min="0"
+                placeholder="0.5"
               />
-              {errors.breakHours && (
-                <p className="text-red-500 text-sm">{errors.breakHours}</p>
-              )}
             </div>
 
+            {/* Overtime Hours */}
             <div className="space-y-2">
-              <Label htmlFor="overtimeHours" className="text-sm font-medium text-gray-700">
-                Overtime Hours
-              </Label>
+              <Label className="text-sm font-medium text-gray-700">Overtime Hours</Label>
               <Input
-                id="overtimeHours"
-                type="number"
-                step="0.1"
                 value={formData.overtimeHours}
                 readOnly
-                className="h-12 text-base bg-gray-50"
-                placeholder="0"
+                className="h-12 text-base bg-gray-100 cursor-not-allowed"
               />
-              <p className="text-xs text-gray-500">Auto-calculated (hours &gt; 8)</p>
             </div>
           </div>
 
-          {/* Notes */}
+          {/* Work Details Tabs */}
           <div className="space-y-2">
-            <Label htmlFor="notes" className="text-sm font-medium text-gray-700">
-              Notes (optional)
-            </Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => handleInputChange('notes', e.target.value)}
-              className="min-h-32 text-base resize-none"
-              placeholder="Describe your work activities, meetings, or any relevant details..."
-            />
+            <Label className="text-sm font-medium text-gray-700">Work Details</Label>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-lg h-11">
+                <TabsTrigger value="tasks" className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md font-medium">
+                  Tasks
+                </TabsTrigger>
+                <TabsTrigger value="description" className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md font-medium">
+                  Description
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="tasks" className="mt-4 space-y-3">
+                <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
+                  {formData.tasks.map((task) => (
+                    <div key={task.id} className="flex gap-3 items-start">
+                      <div className="flex-1">
+                        <Input
+                          placeholder="Task name"
+                          value={task.name}
+                          onChange={(e) => updateTask(task.id, 'name', e.target.value)}
+                          className="h-10"
+                        />
+                      </div>
+                      <div className="w-32">
+                        <Input
+                          type="number"
+                          step="0.5"
+                          placeholder="Hours"
+                          value={task.time}
+                          onChange={(e) => updateTask(task.id, 'time', e.target.value)}
+                          className="h-10"
+                          min="0"
+                        />
+                      </div>
+                      {formData.tasks.length > 1 && (
+                        <Button variant="ghost" size="icon" onClick={() => removeTask(task.id)} className="h-10 w-10 text-red-500 hover:text-red-600 hover:bg-red-50">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <Button variant="outline" onClick={addTask} className="w-full border border-gray-200 hover:border-blue-400 hover:bg-blue-50 text-blue-600">
+                  <Plus className="w-4 h-4 mr-2" /> Add Another Task
+                </Button>
+              </TabsContent>
+
+              <TabsContent value="description" className="mt-4">
+                <Textarea
+                  value={formData.description}
+                  onChange={(e) => handleInputChange('description', e.target.value)}
+                  className="min-h-40 text-base resize-none"
+                  placeholder="Describe your work activities..."
+                />
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
 
         <div className="px-8 py-6 border-t border-gray-200 flex items-center justify-between gap-4">
-          <Button
-            variant="outline"
-            onClick={handleSaveDraft}
-            className="flex-1 h-12 text-gray-800 text-base font-medium border-gray-300 hover:bg-gray-50"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            Save as Draft
+          <Button variant="outline" onClick={handleSaveDraft} className="flex-1 h-12 text-gray-800 text-base font-medium border-gray-300 hover:bg-gray-50">
+            <Save className="w-4 h-4 mr-2" /> Save as Draft
           </Button>
-          <Button
-            onClick={handleSubmit}
-            className="flex-1 h-12 text-base font-medium bg-blue-500 hover:bg-blue-600 text-white"
-          >
-            <Send className="w-4 h-4 mr-2" />
-            Submit for Approval
+          <Button onClick={handleSubmit} className="flex-1 h-12 text-base font-medium bg-blue-500 hover:bg-blue-600 text-white">
+            <Send className="w-4 h-4 mr-2" /> Submit for Approval
           </Button>
         </div>
       </DialogContent>
@@ -604,7 +641,7 @@ const Header = ({ userName }) => (
   </div>
 );
 
-const Tabs = () => (
+const TabsSection= () => (
   <div className="px-8 pt-6">
     <div className="flex gap-4 px-4 py-2 mb-6 bg-gray-100 ">
       <button className="px-4 py-1 bg-white rounded-lg font-semibold text-gray-900 shadow-sm ">
@@ -840,7 +877,7 @@ const EmployeeDashboard = () => {
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
       <div className="flex-1 overflow-auto">
         <Header userName={userName} />
-        <Tabs />
+        <TabsSection/>
         <DashboardContent 
           userName={userName} 
           onLogHours={() => setIsLogHoursModalOpen(true)}
