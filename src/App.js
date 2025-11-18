@@ -1,18 +1,35 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import EmployeeDashboard from './components/EmployeeDashboard';
-import TimesheetsPage from './components/TimeSheetsPage';
-
-import LeaveRequests from './components/LeaveRequests';
+import React, { useState, useEffect } from "react";
+import Dashboard from "./components/Cloud_system/Dashboard";
+import Topbar from "./components/Cloud_system/Topbar";
 
 function App() {
+  const [darkMode, setDarkMode] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+
+  // Add or remove `dark` class on the <html> tag
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [darkMode]);
+
+  const toggleSidebar = () => {
+    setIsSidebarExpanded(!isSidebarExpanded);
+  };
+
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<EmployeeDashboard />} />
-        <Route path="/timesheets" element={<TimesheetsPage />} />
-        <Route path="/leave" element={<LeaveRequests/>} />
-      </Routes>
-    </BrowserRouter>
+    <div className="min-h-screen bg-background-dashboard dark:bg-gray-900 dark:text-white transition-colors duration-300">
+      <Topbar 
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
+        onToggleSidebar={toggleSidebar}
+        isSidebarExpanded={isSidebarExpanded}
+      />
+
+      <Dashboard isSidebarExpanded={isSidebarExpanded} />
+    </div>
   );
 }
 
